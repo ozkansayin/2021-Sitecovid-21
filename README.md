@@ -80,7 +80,7 @@ We have prepared an Ad for you, enjoy
 
 ---
 
-## ~Ad Notice~
+## ...::: Ad Notice :::...
 
 ## Smart Navigation by Sitecovid-21
 
