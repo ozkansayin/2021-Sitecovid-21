@@ -60,6 +60,5 @@ namespace Feature.SmartNavigation.Pipelines
 
         private static string GetItemLink(NavigationItem item) =>
             $"<li><a href=\"#\" class=\"scLink\" title=\"{item.Path}\"\r\n    onclick=\"javascript:return scForm.invoke(&quot;item:load(id={item.ItemId},language=en,version=1)&quot;)\"><span\r\nstyle=\"top:-4px; position:relative;\"><b>{item.Name}</b> -\r\n[{item.Path}]</span></a></li>";
-
     }
 }
