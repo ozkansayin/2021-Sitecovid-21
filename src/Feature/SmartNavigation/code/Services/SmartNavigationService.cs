@@ -94,7 +94,7 @@ namespace Feature.SmartNavigation.Services
             if (lastItemId.HasValue)
             {
                 var lastItem = item.Database.GetItem(new ID(lastItemId.Value));
-                suggestions.LastItem = MapItem(lastItem);
+                suggestions.LastItem = lastItem == null ? null : MapItem(lastItem);
             }
 
             return suggestions;
