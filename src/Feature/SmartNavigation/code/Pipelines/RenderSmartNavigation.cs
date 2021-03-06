@@ -46,11 +46,11 @@ namespace Feature.SmartNavigation.Pipelines
             }
 
             editorFormatter.RenderSectionBegin(parentControl, SectionName, SectionName, SectionName, HeaderIconPath, false, true);
-            RenderNavigation(editorFormatter, parentControl, suggestedItems);
+            RenderNavigation(editorFormatter, parentControl, suggestedItems, CurrentItem);
             editorFormatter.RenderSectionEnd(parentControl, true, false);
         }
 
-        private static void RenderNavigation(EditorFormatter editorFormatter, Control parentControl, SuggestionSet suggestions)
+        private static void RenderNavigation(EditorFormatter editorFormatter, Control parentControl, SuggestionSet suggestions, Item currentItem)
         {
             var suggestionExists = suggestions.NavigationsFromItem.Any() || suggestions.NavigationsToItem.Any();
             var suggestionsHtml = string.Empty;
@@ -62,7 +62,7 @@ namespace Feature.SmartNavigation.Pipelines
             }
 
             var splitterHtml = suggestionExists ? "<hr style=\"margin:10px 0\"/>" : string.Empty;
-            var lastItemOutput = suggestions.LastItem != null ? $"{splitterHtml}<div style=\"font-size: 14px; margin-bottom: 10px;\"><b>The last item you have worked on</b> </div><div style=\"padding-left: 7px;\"><a href=\"#\" class=\"scLink\" title=\"{suggestions.LastItem.Path}\" onclick=\"javascript:return scForm.invoke(&quot;item:load(id={{{suggestions.LastItem.ItemId}}},language=en,version=1)&quot;)\"><span><img src=\"/-/icon/Office/16x16/navigate_left.png.aspx\" width=\"16\" height=\"16\" class=\"scContentTreeNodeIcon\" alt=\"\" border=\"0\"><b>{suggestions.LastItem.Name}</b> - [{suggestions.LastItem.Path}]</span></a></div>" : string.Empty;
+            var lastItemOutput = suggestions.LastItem != null && suggestions.LastItem.ItemId != currentItem.ID.Guid ? $"{splitterHtml}<div style=\"font-size: 14px; margin-bottom: 10px;\"><b>The last item you have worked on</b> </div><div style=\"padding-left: 7px;\"><a href=\"#\" class=\"scLink\" title=\"{suggestions.LastItem.Path}\" onclick=\"javascript:return scForm.invoke(&quot;item:load(id={{{suggestions.LastItem.ItemId}}},language=en,version=1)&quot;)\"><span><img src=\"/-/icon/Office/16x16/navigate_left.png.aspx\" width=\"16\" height=\"16\" class=\"scContentTreeNodeIcon\" alt=\"\" border=\"0\"><b>{suggestions.LastItem.Name}</b> - [{suggestions.LastItem.Path}]</span></a></div>" : string.Empty;
             var output = $"<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" class=\"scEditorFieldMarker\"><tbody><tr><td id=\"FieldMarkerFIELD2123021\" class=\"scEditorFieldMarkerBarCell\"><img src=\"/sitecore/images/blank.gif\" width=\"4px\" height=\"1px\"></td><td class=\"scEditorFieldMarkerInputCell\">{suggestionsHtml}{lastItemOutput}</td></tr></tbody></table>";
             editorFormatter.AddLiteralControl(parentControl, output);
         }
