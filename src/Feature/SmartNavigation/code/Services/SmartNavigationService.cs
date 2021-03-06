@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Feature.SmartNavigation.Models;
 using Microsoft.Extensions.Logging;
 using Sitecore.Data;
@@ -37,6 +38,14 @@ namespace Feature.SmartNavigation.Services
             var itemId = item.ID.Guid;
             var parentId = item.ParentID?.Guid ?? Guid.Empty;
             var lastItemId = GetLastItem();
+
+            if (itemId == lastItemId)
+            {
+                return;
+            }
+
+            SaveLastItem(itemId, parentId);
+
             if (lastItemId == null)
             {
                 logger.LogInformation($"Ignoring relation to item {itemId} as there is no last item");
@@ -62,17 +71,40 @@ namespace Feature.SmartNavigation.Services
         public void HandleItemRemoved(Guid removedItemId)
         {
             suggestionEngine.Clear(removedItemId);
+            ClearLastItem();
         }
 
-        public IEnumerable<NavigationItem> GetSuggestions(Item item, int count)
+        public SuggestionSet GetSuggestions(Item item, int count)
         {
             var itemId = item.ID.Guid;
             var parentId = GetParentItemId(item);
-            var itemIds = suggestionEngine.Predict(itemId, parentId, count);
+            var fromItemIds = suggestionEngine.PredictFromItem(itemId, parentId, count);
+            var suggestionsFromItem = GetNavigationItems(item.Database, fromItemIds).ToList();
 
+            var toItemIds = suggestionEngine.PredictToItem(itemId, parentId, count);
+            var suggestionsToItem = GetNavigationItems(item.Database, toItemIds).ToList();
+
+            var suggestions = new SuggestionSet
+            {
+                NavigationsFromItem = suggestionsFromItem,
+                NavigationsToItem = suggestionsToItem
+            };
+
+            var lastItemId = GetLastItem();
+            if (lastItemId.HasValue)
+            {
+                var lastItem = item.Database.GetItem(new ID(lastItemId.Value));
+                suggestions.LastItem = MapItem(lastItem);
+            }
+
+            return suggestions;
+        }
+
+        private static IEnumerable<NavigationItem> GetNavigationItems(Database database, IEnumerable<Guid> itemIds)
+        {
             foreach (var id in itemIds)
             {
-                var targetItem = item.Database.GetItem(new ID(id));
+                var targetItem = database.GetItem(new ID(id));
                 if (targetItem == null)
                 {
                     continue;
@@ -91,6 +123,18 @@ namespace Feature.SmartNavigation.Services
 
         private Guid? GetLastItem() => registryService.TryGetGuid(LastItemRegistryKey);
         private Guid? GetLastParentItem() => registryService.TryGetGuid(LastParentItemRegistryKey);
+
+        private void SaveLastItem(Guid itemId, Guid parentItemId)
+        {
+            registryService.SaveValue(LastItemRegistryKey, itemId.ToString("N"));
+            registryService.SaveValue(LastParentItemRegistryKey, parentItemId.ToString("N"));
+        }
+
+        private void ClearLastItem()
+        {
+            registryService.SaveValue(LastItemRegistryKey, string.Empty);
+            registryService.SaveValue(LastParentItemRegistryKey, string.Empty);
+        }
 
         private static Guid GetParentItemId(Item item)
         {

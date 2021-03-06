@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Web.UI;
 using Feature.SmartNavigation.Models;
 using Feature.SmartNavigation.Services;
@@ -15,7 +13,8 @@ namespace Feature.SmartNavigation.Pipelines
     {
         private readonly ISmartNavigationService smartNavigationService;
         private const string SectionName = "Smart Navigation";
-        private const string IconPath = "-/icon/Network/16x16/link.png";
+        private const string HeaderIconPath = "/~/icon/office/16x16/lightbulb_on.png";
+        private const string IconPath = "/-/icon/Office/16x16/navigate_right.png.aspx";
 
         public RenderSmartNavigation(ISmartNavigationService smartNavigationService)
         {
@@ -38,39 +37,29 @@ namespace Feature.SmartNavigation.Pipelines
                 return;
             }
 
-            var suggestedItems = smartNavigationService.GetSuggestions(CurrentItem, 5).ToList();
+            var suggestedItems = smartNavigationService.GetSuggestions(CurrentItem, 5);
 
-            editorFormatter.RenderSectionBegin(parentControl, SectionName, SectionName, SectionName, IconPath, false, true);
+            if (!suggestedItems.NavigationsFromItem.Any())
+            {
+                return;
+            }
+
+            editorFormatter.RenderSectionBegin(parentControl, SectionName, SectionName, SectionName, HeaderIconPath, false, true);
             RenderNavigation(editorFormatter, parentControl, suggestedItems);
             editorFormatter.RenderSectionEnd(parentControl, true, false);
         }
 
-        private void RenderNavigation(EditorFormatter editorFormatter, Control parentControl, List<NavigationItem> items)
+        private static void RenderNavigation(EditorFormatter editorFormatter, Control parentControl, SuggestionSet suggestions)
         {
-            items = new List<NavigationItem>()
-            {
-                new NavigationItem()
-                {
-                    ItemId = new Guid("EB443C0B-F923-409E-85F3-E7893C8C30C2"),
-                    Name = "Sublayouts",
-                    Path = "/sitecore/layout/Sublayouts"
-                },
-                new NavigationItem()
-                {
-                    ItemId = new Guid("73BAECEB-744D-4D4A-A7A5-7A935638643F"),
-                    Name = "Sample",
-                    Path = "/sitecore/templates/Sample"
-                }
-            };
-
-            var itemsOutput = items.Select(item => $"<li><a href=\"#\" class=\"scLink\" title=\"{item.Path}\" onclick =\"javascript:return scForm.invoke(&quot;item:load(id={{{item.ItemId}}},language=en,version=1)&quot;)\"><span style=\"top:-4px; position:relative;\">{item.Name}</span></a></li>");
-
-            var output = $"<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" class=\"scEditorFieldMarker\"><tbody><tr><td id=\"FieldMarkerFIELD2123021\" class=\"scEditorFieldMarkerBarCell\"><img src=\"/sitecore/images/blank.gif\" width=\"4px\" height=\"1px\"></td><td class=\"scEditorFieldMarkerInputCell\"><div class=\"scEditorFieldLabel\" title=\"Suggested Items to Navigate\">Suggested Items to Navigate</div><div><ul style=\"padding-left:30px; list-style-image: url('/temp/iconcache/software/16x16/branch.png');\">" +
-                         $"{string.Join("", itemsOutput)}" +
-                         $"</ul></div></td></tr></tbody></table>";
-
+            var fromItemsOutput = string.Join(string.Empty, suggestions.NavigationsFromItem.Select(GetItemLink));
+            var toItemsOutput = string.Join(string.Empty, suggestions.NavigationsToItem.Select(GetItemLink));
+            var lastItemOutput = suggestions.LastItem != null ? $"<hr style=\"margin:10px 0\"/>\r\n                <div style=\"font-size: 14px; margin-bottom: 10px;\">\r\n                    <b>The last item you have worked on</b> \r\n                </div>\r\n                <div style=\"padding-left: 7px;\"><a href=\"#\" class=\"scLink\" title=\"{suggestions.LastItem.Path}\"\r\n                    onclick=\"javascript:return scForm.invoke(&quot;item:load(id={suggestions.LastItem.ItemId},language=en,version=1)&quot;)\">\r\n                    <span><img src=\"/-/icon/Office/16x16/navigate_left.png.aspx\" width=\"16\" height=\"16\" class=\"scContentTreeNodeIcon\" alt=\"\" border=\"0\"><b>{suggestions.LastItem.Name}</b> - [{suggestions.LastItem.Path}]</span></a></div>\r\n            " : string.Empty;
+            var output = $"<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" class=\"scEditorFieldMarker\">\r\n    <tbody>\r\n        <tr>\r\n            <td id=\"FieldMarkerFIELD2123021\" class=\"scEditorFieldMarkerBarCell\"><img src=\"/sitecore/images/blank.gif\"\r\n                    width=\"4px\" height=\"1px\"></td>\r\n            <td class=\"scEditorFieldMarkerInputCell\">\r\n                <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\r\n                    <tbody>\r\n                        <tr>\r\n                            <td>\r\n                                <div style=\"font-size: 14px; margin-bottom: 10px;\"><b>You might want to work on these next</b></div>\r\n                                <ul style=\"padding-left:30px; list-style-image: url('/-/icon/Office/16x16/navigate_right.png.aspx');\">\r\n                                    {fromItemsOutput}\r\n                                </ul>\r\n                            </td>\r\n                            <td>\r\n                                <div style=\"font-size: 14px; margin-bottom: 10px;\"><b>You might want to go back to these</b></div>\r\n                                <ul style=\"padding-left:30px; list-style-image: url('/-/icon/Office/16x16/navigate_right.png.aspx');\">\r\n                                    {toItemsOutput}\r\n                                </ul>\r\n                            </td>\r\n                        </tr>\r\n                    </tbody>\r\n                </table>\r\n                {lastItemOutput}</td>\r\n        </tr>\r\n    </tbody>\r\n</table>";
             editorFormatter.AddLiteralControl(parentControl, output);
         }
+
+        private static string GetItemLink(NavigationItem item) =>
+            $"<li><a href=\"#\" class=\"scLink\" title=\"{item.Path}\"\r\n    onclick=\"javascript:return scForm.invoke(&quot;item:load(id={item.ItemId},language=en,version=1)&quot;)\"><span\r\nstyle=\"top:-4px; position:relative;\"><b>{item.Name}</b> -\r\n[{item.Path}]</span></a></li>";
 
     }
 }

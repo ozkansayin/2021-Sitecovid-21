@@ -8,7 +8,8 @@ namespace Feature.SmartNavigation.Repositories
     {
         void Insert(Guid fromId, Guid toId, int[] hitPoints, decimal calculatedHitPoint);
         IEnumerable<EntryModel> GetAll();
-        IEnumerable<EntryModel> GetTopItemsByFromPath(Guid fromId, int? count);
+        IEnumerable<EntryModel> GetTopItemsByFromId(Guid fromId, Guid fromParentId, int? count);
+        IEnumerable<EntryModel> GetTopItemsByToId(Guid toId, Guid toParentId, int? count);
         EntryModel GetItem(Guid fromId, Guid toId);
         void Delete(Guid fromId, Guid toId);
         void Delete(Guid itemId);

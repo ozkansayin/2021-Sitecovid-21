@@ -50,17 +50,11 @@ namespace Feature.SmartNavigation.Repositories
             return items;
         }
 
-        public IEnumerable<EntryModel> GetTopItemsByFromPath(Guid fromId, int? count)
-        {
-            IEnumerable<EntryModel> items = null;
-            using (var db = GetDatabase())
-            {
-                var col = db.GetCollection<EntryModel>(table_entries);
-                items = count == null ? col.Query().Where(p=> p.FromId == fromId)?.ToList() : col.Query().Where(p => p.FromId == fromId)?.OrderByDescending(p=> p.CalculatedHitPoint).Limit(count.Value)?.ToList();
-            }
+        public IEnumerable<EntryModel> GetTopItemsByFromId(Guid fromId, Guid fromParentId, int? count) =>
+            GetTopItemsById(fromId, fromParentId, count, true);
 
-            return items;
-        }
+        public IEnumerable<EntryModel> GetTopItemsByToId(Guid toId, Guid toParentId, int? count) =>
+        GetTopItemsById(toId, toParentId, count, false);
 
         public EntryModel GetItem(Guid fromId, Guid toId)
         {
@@ -97,5 +91,29 @@ namespace Feature.SmartNavigation.Repositories
             var config = suggestionEngineConfigurationProvider.Configuration;
             return new LiteDatabase(config.DatabaseFilePath);
         }
+
+        private IEnumerable<EntryModel> GetTopItemsById(Guid itemId, Guid itemParentId, int? count, bool isFrom)
+        {
+            using (var db = GetDatabase())
+            {
+                var collection = db.GetCollection<EntryModel>(table_entries);
+                var query = (isFrom
+                    ? GetQueryByFromId(collection, itemId, itemParentId)
+                    : GetQueryByToId(collection, itemId, itemParentId));
+                query = query.OrderByDescending(p => p.CalculatedHitPoint);
+                if (count.HasValue)
+                {
+                    return query.Limit(count.Value * 2).ToList().GroupBy(x => x.ToId).Select(x => x.First()).Take(count.Value);
+                }
+
+                return query.ToList().GroupBy(x => x.ToId).Select(x => x.First());
+            }
+        }
+
+        private ILiteQueryable<EntryModel> GetQueryByFromId(ILiteCollection<EntryModel> collection, Guid fromId, Guid fromParentId) =>
+            collection.Query().Where(p => (p.FromId == fromId || p.FromId == fromParentId) && p.ToId != fromId);
+
+        private ILiteQueryable<EntryModel> GetQueryByToId(ILiteCollection<EntryModel> collection, Guid toId, Guid toParentId) =>
+            collection.Query().Where(p => (p.ToId == toId || p.ToId == toParentId) && p.FromId != toId);
     }
 }

@@ -26,7 +26,6 @@
     <PackageReference Update="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.1" />
     <PackageReference Update="Microsoft.Extensions.Http" Version="3.1.1" />
     <PackageReference Update="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.1" />
-    <PackageReference Update="Microsoft.CodeDom.Providers.DotNetCompilerPlatform" Version="2.0.1" />
     <PackageReference Update="LiteDB" Version="5.0.10" />
   </ItemGroup>
 </Project>

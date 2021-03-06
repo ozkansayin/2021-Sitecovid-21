@@ -65,25 +65,17 @@ namespace Feature.SmartNavigation.Services
             return entryRepository.GetAll();
         }
 
-        public IEnumerable<Guid> Predict(Guid fromId, Guid fromParentId, int limit)
+        public IEnumerable<Guid> PredictFromItem(Guid fromId, Guid fromParentId, int? limit)
         {
-            var items = entryRepository.GetTopItemsByFromPath(fromId, limit);
-
-            if (items != null && items.Count() >= limit)
-            {
-                return items.OrderByDescending(p => p.CalculatedHitPoint).Select(p => p.ToId);
-            }
-
-            var itemsList = items.ToList();
-            int updatedLimit = limit - itemsList.Count();
-
-            var parentResults = entryRepository.GetTopItemsByFromPath(fromParentId, updatedLimit);
-
-            itemsList.AddRange(parentResults);
-
-            return itemsList?.OrderByDescending(p => p.CalculatedHitPoint).Select(p => p.ToId);
+            var entities = entryRepository.GetTopItemsByFromId(fromId, fromParentId, limit) ?? Enumerable.Empty<EntryModel>();
+            return entities.Select(x => x.ToId);
         }
 
+        public IEnumerable<Guid> PredictToItem(Guid toId, Guid toParentId, int? limit)
+        {
+            var entities = entryRepository.GetTopItemsByToId(toId, toParentId, limit) ?? Enumerable.Empty<EntryModel>();
+            return entities.Select(x => x.ToId);
+        }
 
         private void AddSubEntry(Guid fromId, Guid toId, int level)
         {

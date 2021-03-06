@@ -21,15 +21,16 @@ namespace Feature.SmartNavigation.Pipelines
 
         public void OnItemDeleted(object sender, EventArgs args)
         {
-            var deletedItem = Event.ExtractParameter(args, 0) as Item;
-
-            if (deletedItem == null)
+            if (!(Event.ExtractParameter(args, 0) is Item deletedItem))
             {
                 logger.LogWarning("Item is null on OnItemDeleted");
                 return;
             }
 
-            smartNavigationService.HandleItemRemoved(deletedItem.ID.Guid);
+            if (deletedItem.Database.Name.Equals("master", StringComparison.OrdinalIgnoreCase))
+            {
+                smartNavigationService.HandleItemRemoved(deletedItem.ID.Guid);
+            }
         }
 
         public void OnItemSaved(object sender, EventArgs args)
@@ -42,7 +43,7 @@ namespace Feature.SmartNavigation.Pipelines
                 return;
             }
 
-            if (savedItem.Database.Name.ToLower() == "master")
+            if (savedItem.Database.Name.Equals("master", StringComparison.OrdinalIgnoreCase))
             {
                 smartNavigationService.HandleItemEvent(savedItem);
             }
