@@ -21,7 +21,7 @@ This module, called Smart Navigation, produces navigation suggestions, which aim
 
 ## Video link
 
-TODO
+[Youtube](https://www.youtube.com/watch?v=gVZJE0fZlr8)
 
 ## Installation instructions
 
@@ -33,8 +33,8 @@ Installing the Smart Navigation via the [Sitecore Package](packages/SmartNavigat
 
 If you get an error while installing the package, like "Access denied", you might be working in a docker environment with an application pool that does not have enough permissions. We were able to bypass this by adding the following lines to our dockerfile for cm ([\docker\build\cm\dockerfile](docker/build/cm/dockerfile#L32))
 
-`# Grant full access to wwwroot to prevent package installation issues
-RUN icacls 'C:\inetpub\wwwroot' /grant 'IIS_IUSRS:(F)' /t`
+`# Grant full access to wwwroot to prevent package installation issues`<br />
+`RUN icacls 'C:\inetpub\wwwroot' /grant 'IIS_IUSRS:(F)' /t`
 
 ### Via the source code
 
