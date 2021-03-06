@@ -74,7 +74,7 @@ namespace Feature.SmartNavigation.Services
         public IEnumerable<Guid> PredictToItem(Guid toId, Guid toParentId, int? limit)
         {
             var entities = entryRepository.GetTopItemsByToId(toId, toParentId, limit) ?? Enumerable.Empty<EntryModel>();
-            return entities.Select(x => x.ToId);
+            return entities.Select(x => x.FromId);
         }
 
         private void AddSubEntry(Guid fromId, Guid toId, int level)

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using Feature.SmartNavigation.Configuration;
 using Feature.SmartNavigation.Models;
 using LiteDB;
@@ -92,21 +93,31 @@ namespace Feature.SmartNavigation.Repositories
             return new LiteDatabase(config.DatabaseFilePath);
         }
 
-        private IEnumerable<EntryModel> GetTopItemsById(Guid itemId, Guid itemParentId, int? count, bool isFrom)
+        private IEnumerable<EntryModel> GetTopItemsById(Guid itemId, Guid itemParentId, int? count, bool isFromQuery)
         {
             using (var db = GetDatabase())
             {
                 var collection = db.GetCollection<EntryModel>(table_entries);
-                var query = (isFrom
+                var query = (isFromQuery
                     ? GetQueryByFromId(collection, itemId, itemParentId)
                     : GetQueryByToId(collection, itemId, itemParentId));
                 query = query.OrderByDescending(p => p.CalculatedHitPoint);
-                if (count.HasValue)
+                Func<EntryModel, Guid> groupByExpression = null;
+                if (isFromQuery)
                 {
-                    return query.Limit(count.Value * 2).ToList().GroupBy(x => x.ToId).Select(x => x.First()).Take(count.Value);
+                    groupByExpression = x => x.ToId;
+                }
+                else
+                {
+                    groupByExpression = x => x.FromId;
                 }
 
-                return query.ToList().GroupBy(x => x.ToId).Select(x => x.First());
+                if (count.HasValue)
+                {
+                    return query.Limit(count.Value * 2).ToList().GroupBy(groupByExpression).Select(x => x.First()).Take(count.Value);
+                }
+
+                return query.ToList().GroupBy(groupByExpression).Select(x => x.First());
             }
         }
 
