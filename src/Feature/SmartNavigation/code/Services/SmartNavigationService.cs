@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Web;
+using System.Web.Caching;
 using Feature.SmartNavigation.Models;
 using Microsoft.Extensions.Logging;
+using Sitecore.Configuration;
 using Sitecore.Data;
 using Sitecore.Data.Items;
 using Sitecore.SecurityModel;
@@ -11,13 +15,18 @@ namespace Feature.SmartNavigation.Services
 {
     public class SmartNavigationService : ISmartNavigationService
     {
+        private const string CacheKey = "SmartNavigation.ItemCache";
         private const string LastItemRegistryKey = "SmartNavigation.LastItem";
         private const string LastParentItemRegistryKey = "SmartNavigation.LastParentItem";
+        private const int LockWaitMilliseconds = 600;
 
         private readonly IRegistryService registryService;
         private readonly ISuggestionEngine suggestionEngine;
         private readonly ILogger<SmartNavigationService> logger;
+        private readonly int cacheSeconds;
 
+        private static readonly object LockObject = new object();
+        
         public SmartNavigationService(IRegistryService registryService, 
             ISuggestionEngine suggestionEngine,
             ILogger<SmartNavigationService> logger)
@@ -25,6 +34,7 @@ namespace Feature.SmartNavigation.Services
             this.registryService = registryService;
             this.suggestionEngine = suggestionEngine;
             this.logger = logger;
+            cacheSeconds = Settings.GetIntSetting("SmartNavigation.CacheSeconds", 10);
         }
 
         public void HandleItemEvent(Item item)
@@ -75,6 +85,45 @@ namespace Feature.SmartNavigation.Services
         }
 
         public SuggestionSet GetSuggestions(Item item, int count)
+        {
+            if (item == null)
+            {
+                return null;
+            }
+
+            var cacheKey = GetCacheKey(item.ID.Guid);
+            var cached = HttpContext.Current?.Cache.Get(cacheKey) as SuggestionSet;
+
+            if (cached != null)
+            {
+                return cached;
+            }
+
+            if (Monitor.TryEnter(LockObject, LockWaitMilliseconds))
+            {
+                try
+                {
+                    cached = HttpContext.Current?.Cache.Get(cacheKey) as SuggestionSet;
+
+                    if (cached != null)
+                    {
+                        return cached;
+                    }
+
+                    cached = GenerateSuggestionSet(item, count);
+                    HttpContext.Current?.Cache.Insert(cacheKey, cached, null, DateTime.Now.AddSeconds(cacheSeconds), Cache.NoSlidingExpiration);
+                    return cached;
+                }
+                finally
+                {
+                    Monitor.Exit(LockObject);
+                }
+            }
+
+            return null;
+        }
+
+        private SuggestionSet GenerateSuggestionSet(Item item, int count)
         {
             var itemId = item.ID.Guid;
             var parentId = GetParentItemId(item);
@@ -143,5 +192,7 @@ namespace Feature.SmartNavigation.Services
                 return item.ParentID?.Guid ?? Guid.Empty;
             }
         }
+
+        private static string GetCacheKey(Guid itemId) => $"{CacheKey}.{itemId.ToString("N")}";
     }
 }

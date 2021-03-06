@@ -25,11 +25,11 @@ This module, called Smart Navigation, produces navigation suggestions, which aim
 
 ## Installation instructions
 
-You can use the module either by installing it as a [Sitecore Package](scpackages/SmartNavigation-1.2.zip), or using the source code.
+You can use the module either by installing it as a [Sitecore Package](scpackages/SmartNavigation-1.3.zip), or using the source code.
 
 ### Via the Sitecore package
 
-Installing the Smart Navigation via the [Sitecore Package](scpackages/SmartNavigation-1.2.zip) is pretty straightforward. Just install the package [SmartNavigation-1.2.zip](scpackages/SmartNavigation-1.2.zip) as always, and it should work.
+Installing the Smart Navigation via the [Sitecore Package](scpackages/SmartNavigation-1.3.zip) is pretty straightforward. Just install the package [SmartNavigation-1.3.zip](scpackages/SmartNavigation-1.3.zip) as always, and it should work.
 
 If you get an error while installing the package, like "Access denied", you might be working in a docker environment with an application pool that does not have enough permissions. We were able to bypass this by adding the following lines to our dockerfile for cm ([\docker\build\cm\dockerfile](docker/build/cm/Dockerfile#L32))
 
@@ -43,7 +43,13 @@ If you get an error while installing the package, like "Access denied", you migh
 * Done.
 
 ### Configuration
-There are no mandatory configurations to be done. Just in case you want to change the database file path that is used by the suggestion engine (via LiteDB), you can update the setting with key "SmartNavigation.DbFilePath" at path "\App_Config\Include\Feature\Feature.SmartNavigation.Settings.config", which defaults to "$(dataFolder)/smartNavigation.db"
+There are no mandatory configurations to be done. 
+
+#### Database file path
+Just in case you want to change the database file path that is used by the suggestion engine (via LiteDB), you can update the setting with key "SmartNavigation.DbFilePath" at path "\App_Config\Include\Feature\Feature.SmartNavigation.Settings.config", which defaults to "$(dataFolder)/smartNavigation.db"
+
+#### Cache Seconds
+We are caching suggestions in order to avoid performance issues. The number of seconds the suggestions are cached can be updated via the setting with key "SmartNavigation.CacheSeconds" at path "\App_Config\Include\Feature\Feature.SmartNavigation.Settings.config", which defaults to 10 seconds.
 
 ## Usage instructions
 

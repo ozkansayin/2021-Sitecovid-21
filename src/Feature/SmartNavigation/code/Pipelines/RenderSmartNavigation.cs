@@ -40,7 +40,7 @@ namespace Feature.SmartNavigation.Pipelines
 
             var suggestedItems = smartNavigationService.GetSuggestions(CurrentItem, 5);
 
-            if (!suggestedItems.NavigationsFromItem.Any() && !suggestedItems.NavigationsFromItem.Any() && suggestedItems.LastItem == null)
+            if (suggestedItems == null || !suggestedItems.NavigationsFromItem.Any() && !suggestedItems.NavigationsFromItem.Any() && suggestedItems.LastItem == null)
             {
                 return;
             }
