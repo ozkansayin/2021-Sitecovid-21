@@ -31,7 +31,7 @@ You can use the module either by installing it as a [Sitecore Package](scpackage
 
 Installing the Smart Navigation via the [Sitecore Package](scpackages/SmartNavigation-1.2.zip) is pretty straightforward. Just install the package [SmartNavigation-1.2.zip](scpackages/SmartNavigation-1.2.zip) as always, and it should work.
 
-If you get an error while installing the package, like "Access denied", you might be working in a docker environment with an application pool that does not have enough permissions. We were able to bypass this by adding the following lines to our dockerfile for cm ([\docker\build\cm\dockerfile](docker/build/cm/dockerfile#L32))
+If you get an error while installing the package, like "Access denied", you might be working in a docker environment with an application pool that does not have enough permissions. We were able to bypass this by adding the following lines to our dockerfile for cm ([\docker\build\cm\dockerfile](docker/build/cm/Dockerfile#L32))
 
 `# Grant full access to wwwroot to prevent package installation issues`<br />
 `RUN icacls 'C:\inetpub\wwwroot' /grant 'IIS_IUSRS:(F)' /t`
