@@ -28,3 +28,6 @@ RUN Rename-Item -Path "c:\inetpub\wwwroot\App_Config\Include\Spe\Spe.IdentitySer
 
 # Copy solution website files
 COPY --from=solution /artifacts/platform/ ./
+
+# Grant full access to wwwroot to prevent package installation issues
+RUN icacls 'C:\inetpub\wwwroot' /grant 'IIS_IUSRS:(F)' /t
