@@ -7,6 +7,9 @@ using Sitecore.Publishing;
 
 namespace Feature.SmartNavigation.Pipelines
 {
+    /// <summary>
+    /// Catches the events from Sitecore items to handle them individually to call necessary services related to the Smart Navigation
+    /// </summary>
     public class EventHandler
     {
         private readonly ILogger<EventHandler> logger;
