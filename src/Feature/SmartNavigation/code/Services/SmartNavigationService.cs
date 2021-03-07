@@ -118,8 +118,25 @@ namespace Feature.SmartNavigation.Services
         {
             ItemId = item.ID.Guid,
             Name = string.IsNullOrEmpty(item.DisplayName) ? item.Name : item.DisplayName,
-            Path = item.Paths.Path
+            Path = item.Paths.Path,
+            IconUrl = GetIconUrl(item)
         };
+
+        private static string GetIconUrl(Item item)
+        {
+            var icon = item.Appearance.Icon;
+
+            if (icon.StartsWith("~"))
+            {
+                icon = Sitecore.StringUtil.EnsurePrefix('/', icon);
+            }
+            else if (!(icon.StartsWith("/") && icon.Contains(":")))
+            {
+                icon = Sitecore.Resources.Images.GetThemedImageSource(icon);
+            }
+
+            return Sitecore.Resources.Images.GetThemedImageSource(icon);
+        }
 
         private Guid? GetLastItem() => registryService.TryGetGuid(LastItemRegistryKey);
         private Guid? GetLastParentItem() => registryService.TryGetGuid(LastParentItemRegistryKey);

@@ -7,5 +7,6 @@ namespace Feature.SmartNavigation.Models
         public string Name { get; set; }
         public string Path { get; set; }
         public Guid ItemId { get; set; }
+        public string IconUrl { get; set; }
     }
 }
